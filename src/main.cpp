@@ -10,6 +10,9 @@ int main() {
 
   string input;
   while(getline(cin, input)){
+    if(input=="exit 0"){
+      return 0;
+    }
   cout<< input<<": command not found"<<endl;
   cout<<"$ ";
   }
