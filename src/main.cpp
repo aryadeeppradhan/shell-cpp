@@ -11,10 +11,20 @@ int main() {
       return 0;
     }else if(input.find("echo")!=string::npos){
       cout<<input.substr(5)<<endl;
-      cout<<"$ ";
-    }else{
-  cout<< input<<": command not found"<<endl;
-  cout<<"$ ";
+    }else if(input.find("type")!=string::npos){
+      string a=input.substr(5);
+      if(a=="echo"||a=="exit"||a=="type"){
+        cout<<a<<" is a shell builtin"<<endl;
+ 
+      }else{
+        cout<<a<<": not found"<<endl;
+
+      }
+      }else{
+  cout<<input<<": command not found"<<endl;
     }
+    cout<<"$ ";
   }
+  return 0;
 }
+
