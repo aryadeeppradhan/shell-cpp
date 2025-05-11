@@ -9,19 +9,22 @@ int main() {
   while(getline(cin, input)){
     if(input=="exit 0"){
       return 0;
-    }else if(input.find("echo")!=string::npos){
+    }else if(input.find("echo")==0){//!=string:npos bhi de skte par it then $type echo yaha pe aa jaega dusre cond me nhi jaega
       cout<<input.substr(5)<<endl;
-    }else if(input.find("type")!=string::npos){
+    }else if(input.find("type")==0){
       string a=input.substr(5);
+      if (a[0] == ' ') {
+        a = a.substr(1);
+      }
       if(a=="echo"||a=="exit"||a=="type"){
-        cout<<a<<" is a shell builtin"<<endl;
+        cout<<a+" is a shell builtin"<<endl;
  
       }else{
-        cout<<a<<": not found"<<endl;
+        cout<<a+": not found"<<endl;
 
       }
       }else{
-  cout<<input<<": command not found"<<endl;
+  cout<<input+": command not found"<<endl;
     }
     cout<<"$ ";
   }
