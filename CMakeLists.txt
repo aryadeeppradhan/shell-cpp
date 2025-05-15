@@ -9,3 +9,9 @@ set(CMAKE_CXX_STANDARD 23) # Enable the C++23 standard
 add_executable(shell ${SOURCE_FILES})
 
 target_link_libraries(shell PRIVATE readline)
+if(WIN32)
+  add_definitions(-DWIN32)
+else()
+  add_definitions(-DUNIX)
+endif()
+
