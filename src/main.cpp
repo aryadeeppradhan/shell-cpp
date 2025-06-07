@@ -13,7 +13,19 @@ int main() {
   while(getline(cin, input)){
     if(input=="exit 0"){
       return 0;
-    }else if (input == "pwd"){//pwd command prints the current working directory
+    }else if(input.find("cd") == 0){
+    string path = input.substr(3);
+    path.erase(0, path.find_first_not_of(" ")); // trim leading spaces
+    // If path is empty, treat as no-op for now
+    if (path.empty()) {
+        cout << "$ ";
+        continue;
+    }
+    if (chdir(path.c_str()) != 0) {
+        // Failed to change directory
+        cerr << "cd: " << path << ": No such file or directory" << endl;
+    }
+  }else if (input == "pwd"){
       char cwd[PATH_MAX];
       if (getcwd(cwd, sizeof(cwd)) != nullptr){
           cout << cwd << endl;
