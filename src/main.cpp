@@ -13,17 +13,24 @@ int main() {
   while(getline(cin, input)){
     if(input=="exit 0"){
       return 0;
-    }else if(input.find("echo")==0){//!=string:npos bhi de skte par it then $type echo yaha pe aa jaega dusre cond me nhi jaega
+    }else if (input == "pwd"){
+      char cwd[PATH_MAX];
+      if (getcwd(cwd, sizeof(cwd)) != nullptr){
+          cout << cwd << endl;
+    }else{
+      perror("getcwd");
+    }
+  }else if(input.find("echo")==0){//!=string:npos bhi de skte par it then $type echo yaha pe aa jaega dusre cond me nhi jaega
       cout<<input.substr(5)<<endl;
     }else if(input.find("type")==0){
       string a=input.substr(5);
-      if (!a.empty()&&a[0] == ' ') {
+      if (!a.empty()&&a[0] == ' '){
         a = a.substr(1);
       }
       if(a=="echo"||a=="exit"||a=="type"){
         cout<<a+" is a shell builtin"<<endl;
       }else{
-      const char* pathEnv = getenv("PATH");//returns the value of the environment variable PATH 
+        const char* pathEnv = getenv("PATH");//returns the value of the environment variable PATH 
                 if (pathEnv == nullptr) {
                     cout << a << ": not found" << endl;
                 } else {
