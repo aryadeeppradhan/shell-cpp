@@ -13,7 +13,7 @@ int main() {
   while(getline(cin, input)){
     if(input=="exit 0"){
       return 0;
-    }else if (input == "pwd"){
+    }else if (input == "pwd"){//pwd command prints the current working directory
       char cwd[PATH_MAX];
       if (getcwd(cwd, sizeof(cwd)) != nullptr){
           cout << cwd << endl;
@@ -27,7 +27,7 @@ int main() {
       if (!a.empty()&&a[0] == ' '){
         a = a.substr(1);
       }
-      if(a=="echo"||a=="exit"||a=="type"){
+      if(a=="echo"||a=="exit"||a=="type"|| a=="pwd"){
         cout<<a+" is a shell builtin"<<endl;
       }else{
         const char* pathEnv = getenv("PATH");//returns the value of the environment variable PATH 
