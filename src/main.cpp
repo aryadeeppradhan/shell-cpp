@@ -1,96 +1,122 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include<filesystem>
+#include <filesystem>
 using namespace std;
 namespace fs = filesystem;
-int main() {
-  cout << unitbuf;
-  cerr << unitbuf;//similar to cout but specifically used for printing error message. Used when you want to log error
-  cout << "$ ";
 
-  string input;
-  while(getline(cin, input)){
-    if(input=="exit 0"){
-      return 0;
-    } else if (input.find("cd") == 0) {
-    string path = input.substr(3);
-    path.erase(0, path.find_first_not_of(" ")); // Trim leading spaces
+vector<string> tokenize(const string& input) {
+    vector<string> tokens;
+    string token;
+    bool inSingleQuote = false;
 
-    if (path.empty()) {
-        // Do nothing or change to home (your choice)
-        cout << "$ ";
-        continue;
-    }
-
-    // Handle ~ replacement
-    if (path[0] == '~') {
-        const char* home = getenv("HOME");
-        if (home != nullptr) {
-            if (path == "~") {
-                path = string(home);
-            } else if (path[1] == '/') {
-                path = string(home) + path.substr(1);
+    for (size_t i = 0; i < input.length(); ++i) {
+        char c = input[i];
+        if (c == '\'') {
+            inSingleQuote = !inSingleQuote;
+        } else if (isspace(c) && !inSingleQuote) {
+            if (!token.empty()) {
+                tokens.push_back(token);
+                token.clear();
             }
+        } else {
+            token += c;
         }
     }
-
-    if (chdir(path.c_str()) != 0) {
-        cerr << "cd: " << path << ": No such file or directory" << endl;
+    if (!token.empty()) {
+        tokens.push_back(token);
     }
-}else if (input == "pwd"){
-      char cwd[PATH_MAX];
-      if (getcwd(cwd, sizeof(cwd)) != nullptr){
-          cout << cwd << endl;
-    }else{
-      perror("getcwd");
-    }
-  }else if(input.find("echo")==0){//!=string:npos bhi de skte par it then $type echo yaha pe aa jaega dusre cond me nhi jaega
-      cout<<input.substr(5)<<endl;
-    }else if(input.find("type")==0){
-      string a=input.substr(5);
-      if (!a.empty()&&a[0] == ' '){
-        a = a.substr(1);
-      }
-      if(a=="echo"||a=="exit"||a=="type"|| a=="pwd"){
-        cout<<a+" is a shell builtin"<<endl;
-      }else{
-        const char* pathEnv = getenv("PATH");//returns the value of the environment variable PATH 
-                if (pathEnv == nullptr) {
-                    cout << a << ": not found" << endl;
-                } else {
-                    string pathStr(pathEnv);// Convert to string for easier manipulation, convert char* to string
-                    stringstream ss(pathStr);//it split the string using ':' as delimiter
-                    string dir;
-                    bool found = false;
+    return tokens;
+}
 
-                    // Step 3: Split by ':' and check each dir
-                    while (getline(ss, dir, ':')) {//jab tak ':' nahi milta tab tak line ko read karta rahega
-                        string fullPath = dir + "/" + a;
-                        if (fs::exists(fullPath) && fs::is_regular_file(fullPath) && access(fullPath.c_str(), X_OK) == 0) {
-                            cout << a << " is " << fullPath << endl;
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        cout << a << ": not found" << endl;
+int main() {
+    cout << unitbuf;
+    cerr << unitbuf;
+    cout << "$ ";
+
+    string input;
+    while (getline(cin, input)) {
+        vector<string> tokens = tokenize(input);
+        if (tokens.empty()) {
+            cout << "$ ";
+            continue;
+        }
+
+        string command = tokens[0];
+
+        if (command == "exit" && tokens.size() == 2 && tokens[1] == "0") {
+            return 0;
+
+        } else if (command == "cd") {
+            if (tokens.size() < 2) {
+                // Optional: cd with no argument could go to HOME
+                cout << "$ ";
+                continue;
+            }
+            string path = tokens[1];
+
+            if (path[0] == '~') {
+                const char* home = getenv("HOME");
+                if (home != nullptr) {
+                    if (path == "~") {
+                        path = string(home);
+                    } else if (path[1] == '/') {
+                        path = string(home) + path.substr(1);
                     }
                 }
             }
-        }else{
-          //handling external commands
-          stringstream iss(input);
-          vector<string> tokens;
-          string token;
-          while(iss>>token){//ek ek word jo stringstream toda wo token me daal dega
-            tokens.push_back(token);
-          }
-          if(tokens.empty()){
-            cout<<"$ ";
-            continue;
-          }
-           string command = tokens[0];
+
+            if (chdir(path.c_str()) != 0) {
+                cerr << "cd: " << path << ": No such file or directory" << endl;
+            }
+
+        } else if (command == "pwd") {
+            char cwd[PATH_MAX];
+            if (getcwd(cwd, sizeof(cwd)) != nullptr) {
+                cout << cwd << endl;
+            } else {
+                perror("getcwd");
+            }
+
+        } else if (command == "echo") {
+            for (size_t i = 1; i < tokens.size(); ++i) {
+                cout << tokens[i];
+                if (i != tokens.size() - 1) cout << " ";
+            }
+            cout << endl;
+
+        } else if (command == "type") {
+            if (tokens.size() < 2) {
+                cout << "type: missing argument" << endl;
+            } else {
+                string a = tokens[1];
+                if (a == "echo" || a == "exit" || a == "type" || a == "pwd" || a == "cd") {
+                    cout << a << " is a shell builtin" << endl;
+                } else {
+                    const char* pathEnv = getenv("PATH");
+                    if (pathEnv == nullptr) {
+                        cout << a << ": not found" << endl;
+                    } else {
+                        string pathStr(pathEnv);
+                        stringstream ss(pathStr);
+                        string dir;
+                        bool found = false;
+                        while (getline(ss, dir, ':')) {
+                            string fullPath = dir + "/" + a;
+                            if (fs::exists(fullPath) && fs::is_regular_file(fullPath) && access(fullPath.c_str(), X_OK) == 0) {
+                                cout << a << " is " << fullPath << endl;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            cout << a << ": not found" << endl;
+                        }
+                    }
+                }
+            }
+
+        } else {
             const char* pathEnv = getenv("PATH");
             bool found = false;
             string fullPath;
@@ -110,26 +136,27 @@ int main() {
 
             if (!found) {
                 cout << command << ": command not found" << endl;
-            }else{
-              //building argv
-              vector<char*> argv;
-              for(const string& arg : tokens) {
-                argv.push_back(const_cast<char*>(arg.c_str()));//c_str() returns a const char* pointer to the string's data. Par execv ko const char* nahi chahiye. essiliye const_cast use kiya taki wo const char* ko char* me convert kar sake
-              }
-              argv.push_back(nullptr);//execv ko last me null pointer chahiye hota hai
-              pid_t pid = fork();  // create child
-              if(pid == 0){
-                execv(fullPath.c_str(), argv.data());
-                perror("execv");
-                exit(1);
-              } else {
-                int status;
-                waitpid(pid, &status, 0);
+            } else {
+                vector<char*> argv;
+                for (const string& arg : tokens) {
+                    argv.push_back(const_cast<char*>(arg.c_str()));
+                }
+                argv.push_back(nullptr);
+
+                pid_t pid = fork();
+                if (pid == 0) {
+                    execv(fullPath.c_str(), argv.data());
+                    perror("execv");
+                    exit(1);
+                } else {
+                    int status;
+                    waitpid(pid, &status, 0);
                 }
             }
-    } 
-    cout<<"$ ";
-  }
-  return 0;
-}
+        }
 
+        cout << "$ ";
+    }
+
+    return 0;
+}
