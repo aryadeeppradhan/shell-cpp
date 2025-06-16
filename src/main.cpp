@@ -9,18 +9,37 @@ vector<string> tokenize(const string& input) {
     vector<string> tokens;
     string token;
     bool inSingleQuote = false;
-
+    bool inDoubleQuote = false;
     for (size_t i = 0; i < input.length(); ++i) {
         char c = input[i];
-        if (c == '\'') {
-            inSingleQuote = !inSingleQuote;
-        } else if (isspace(c) && !inSingleQuote) {
-            if (!token.empty()) {
-                tokens.push_back(token);
-                token.clear();
+        if (inSingleQuote) {
+            if (c == '\'') {
+                inSingleQuote = false;
+            } else {
+                token += c;
+            }
+        } else if (inDoubleQuote) {
+            if (c == '"') {
+                inDoubleQuote = false;
+            } else if (c == '\\' && i + 1 < input.size() &&
+                      (input[i + 1] == '"' || input[i + 1] == '\\' || input[i + 1] == '$' || input[i + 1] == '\n')) {
+                token += input[++i];  // take escaped character
+            } else {
+                token += c;
             }
         } else {
-            token += c;
+            if (isspace(c)) {
+                if (!token.empty()) {
+                    tokens.push_back(token);
+                    token.clear();
+                }
+            } else if (c == '\'') {
+                inSingleQuote = true;
+            } else if (c == '"') {
+                inDoubleQuote = true;
+            } else {
+                token += c;
+            }
         }
     }
     if (!token.empty()) {
