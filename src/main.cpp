@@ -10,21 +10,26 @@ vector<string> tokenize(const string& input) {
     string token;
     bool inSingleQuote = false;
     bool inDoubleQuote = false;
-    for (size_t i = 0; i < input.length(); ++i) {
+    for(size_t i = 0; i < input.length(); ++i){
         char c = input[i];
-        if (inSingleQuote) {
-            if (c == '\'') {
+        if(inSingleQuote){
+            if(c == '\''){
                 inSingleQuote = false;
-            } else {
+            }else{
                 token += c;
             }
-        } else if (inDoubleQuote) {
-            if (c == '"') {
+        }else if(inDoubleQuote){
+            if(c == '"'){
                 inDoubleQuote = false;
-            } else if (c == '\\' && i + 1 < input.size() &&
-                      (input[i + 1] == '"' || input[i + 1] == '\\' || input[i + 1] == '$' || input[i + 1] == '\n')) {
-                token += input[++i];  // take escaped character
-            } else {
+            }else if(c == '\\' && i + 1 < input.length()){
+                char next= input[i + 1];// take escaped character
+                if(next == '"' || next == '\\' || next == '$' || next == '\n'){
+                token += next;  
+                ++i;
+            }else{
+                token+='\\';
+            }
+            }else{
                 token += c;
             }
         } else {
@@ -37,7 +42,9 @@ vector<string> tokenize(const string& input) {
                 inSingleQuote = true;
             } else if (c == '"') {
                 inDoubleQuote = true;
-            } else {
+            }else if(c == '\\' && i + 1 < input.length()){
+                token += input[++i]; // escape next characterelse 
+            }else{    
                 token += c;
             }
         }
